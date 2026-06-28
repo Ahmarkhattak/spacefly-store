@@ -1,23 +1,24 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
   throw new Error('❌ Please define MONGODB_URI environment variable');
 }
 
-console.log('🔍 MONGODB_URI found:', MONGODB_URI.substring(0, 30) + '...');
-
 // Global cache for MongoDB connection
 let cached = (global as any).mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (global as any).mongoose = {
+    conn: null,
+    promise: null,
+  };
 }
 
 async function connectDB() {
   console.log('🔌 connectDB() called');
-  
+
   if (cached.conn) {
     console.log('✅ Using cached connection');
     return cached.conn;
@@ -25,12 +26,14 @@ async function connectDB() {
 
   if (!cached.promise) {
     console.log('🆕 Creating new connection...');
+
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+      serverSelectionTimeoutMS: 5000,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts)
+    cached.promise = mongoose
+      .connect(MONGODB_URI, opts)
       .then((mongoose) => {
         console.log('✅ MongoDB Connected Successfully!');
         return mongoose;
