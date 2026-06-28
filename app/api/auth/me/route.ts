@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
 import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
+
     const token = cookieStore.get('token');
 
     if (!token) {
@@ -16,25 +14,15 @@ export async function GET() {
       );
     }
 
-    // Verify token
-    const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'secret') as any;
-    
-    await connectDB();
-    const user = await User.findById(decoded.id).select('-password');
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ user });
+    return NextResponse.json({
+      success: true,
+      token: token.value,
+    });
 
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message },
-      { status: 401 }
+      { status: 500 }
     );
   }
 }
